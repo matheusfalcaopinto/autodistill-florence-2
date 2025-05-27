@@ -68,10 +68,30 @@ base_model.label("./context_images", extension=".jpeg")
 ## Quickstart (Fine-Tune)
 
 ```python
-from autodistill_florence_2 import Florence2Trainer
+# 1. INICIAR O TREINAMENTO
+# Escolha o modelo base que deseja treinar
+trainer = Florence2Trainer(model_id="microsoft/Florence-2-large-ft")
 
-model = Florence2Trainer("dataset")
-model.train(dataset.location, epochs=10)
+# Inicie o fine-tuning com seus dados no formato COCO
+# Supondo que seus dados estejam em "/content/my_dataset/"
+trainer.train(dataset_path="/content/my_dataset", epochs=15)
+
+
+# 2. REALIZAR INFERÊNCIA COM O MODELO TREINADO
+# Defina a ontologia das classes que você espera detectar
+ontology = CaptionOntology({"classe1": "classe1", "classe2": "classe2"})
+
+# Carregue o modelo com os adaptadores LoRA que você acabou de treinar
+inference_model = Florence2(ontology=ontology, model_path="./final_model_peft/")
+
+# Realize a predição em uma nova imagem
+detections = inference_model.predict("caminho/para/sua/imagem.jpg")
+
+# Visualize os resultados
+image = cv2.imread("caminho/para/sua/imagem.jpg")
+annotator = sv.BoxAnnotator()
+annotated_image = annotator.annotate(scene=image.copy(), detections=detections)
+sv.plot_image(annotated_image)
 ```
 
 ## License
